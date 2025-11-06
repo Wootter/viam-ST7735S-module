@@ -62,10 +62,10 @@ Voeg toe aan je robot config (`app.viam.com`):
   ],
   "services": [
     {
-      "name": "robot_face",
+      "name": "st7735s_display",
       "namespace": "rdk",
       "type": "vision",
-      "model": "wootter:vision:robot_face",
+      "model": "wootter:vision:st7735s",
       "attributes": {
         "cs_pin": 8,
         "dc_pin": 25,
@@ -99,7 +99,7 @@ async def main():
     robot = await RobotClient.at_address('YOUR_ROBOT_ADDRESS').connect()
     
     # Get the display service
-    display = robot.get_service("robot_face")
+    display = robot.get_service("st7735s_display")
     
     # Set expression
     await display.do_command({
@@ -175,7 +175,7 @@ import asyncio
 async def auto_face():
     robot = await RobotClient.at_address('localhost:8080').connect()
     
-    display = robot.get_service("robot_face")
+    display = robot.get_service("st7735s_display")
     motion = robot.get_component("motion_sensor")
     light = robot.get_component("light_sensor")
     

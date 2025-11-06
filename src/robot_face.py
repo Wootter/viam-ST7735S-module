@@ -31,7 +31,7 @@ class RobotFaceDisplay(Vision, Reconfigurable):
     - custom_text: {"command": "custom_text", "text": "Hello!", "x": 10, "y": 50}
     """
     
-    MODEL: ClassVar[Model] = Model(ModelFamily("wootter", "vision"), "robot_face")
+    MODEL: ClassVar[Model] = Model(ModelFamily("wootter", "vision"), "st7735s")
     
     display = None
     current_face: str = "neutral"

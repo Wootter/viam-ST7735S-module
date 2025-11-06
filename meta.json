@@ -6,7 +6,7 @@
   "models": [
     {
       "api": "rdk:service:vision",
-      "model": "wootter:vision:robot_face"
+      "model": "wootter:vision:st7735s"
     }
   ],
   "build": {
