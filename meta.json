@@ -1,0 +1,19 @@
+{
+  "module_id": "wootter:st7735s",
+  "visibility": "public",
+  "url": "https://github.com/Wootter/viam-st7735s-module",
+  "description": "ST7735S display vision service for showing robot faces",
+  "models": [
+    {
+      "api": "rdk:service:vision",
+      "model": "wootter:vision:robot_face"
+    }
+  ],
+  "build": {
+    "setup": "./setup.sh",
+    "build": "tar -czf module.tar.gz run.sh requirements.txt src",
+    "path": "module.tar.gz",
+    "arch": ["linux/arm64"]
+  },
+  "entrypoint": "run.sh"
+}
