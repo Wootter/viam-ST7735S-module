@@ -277,6 +277,26 @@ class RobotFaceDisplay(Vision, Reconfigurable):
         """Not implemented - display doesn't generate point clouds"""
         return []
     
+    async def capture_all_from_camera(self, camera_name: str, 
+                                     return_image: bool = False,
+                                     return_classifications: bool = False,
+                                     return_detections: bool = False,
+                                     return_object_point_clouds: bool = False,
+                                     *, extra: Optional[Dict[str, Any]] = None,
+                                     timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Not implemented - display doesn't capture from cameras"""
+        return {}
+    
+    async def get_properties(self, *, extra: Optional[Dict[str, Any]] = None,
+                            timeout: Optional[float] = None) -> Dict[str, Any]:
+        """Return properties of this vision service"""
+        return {
+            "supports_pcd": False,
+            "detections_supported": False,
+            "classifications_supported": False,
+            "object_point_clouds_supported": False
+        }
+    
     async def close(self):
         """Clean up resources"""
         if self.display:
