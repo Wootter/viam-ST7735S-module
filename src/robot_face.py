@@ -54,14 +54,15 @@ class RobotFaceDisplay(Vision, Reconfigurable):
         attrs = config.attributes.fields
         
         # Get pin configuration (with defaults)
-        cs_pin_num = int(attrs.get("cs_pin", {}).number_value or 8)
-        dc_pin_num = int(attrs.get("dc_pin", {}).number_value or 25)
-        reset_pin_num = int(attrs.get("reset_pin", {}).number_value or 24)
-        rotation = int(attrs.get("rotation", {}).number_value or 90)
+        # attrs is now a dict, not protobuf fields
+        cs_pin_num = int(attrs.get("cs_pin", 8))
+        dc_pin_num = int(attrs.get("dc_pin", 25))
+        reset_pin_num = int(attrs.get("reset_pin", 24))
+        rotation = int(attrs.get("rotation", 90))
         
         # Optional: custom width/height
-        self.width = int(attrs.get("width", {}).number_value or 128)
-        self.height = int(attrs.get("height", {}).number_value or 160)
+        self.width = int(attrs.get("width", 128))
+        self.height = int(attrs.get("height", 160))
         
         try:
             # Import hardware libraries (only when actually running on Pi)
