@@ -24,11 +24,21 @@ VCC   → Pin 1  (3.3V) ⚠️ NIET 5V!
 GND   → Pin 6  (GND)
 SCL   → Pin 23 (GPIO 11 / SPI0 SCLK)
 SDA   → Pin 19 (GPIO 10 / SPI0 MOSI)
-CS    → Pin 24 (GPIO 8  / CE0)
-DC    → Pin 18 (GPIO 25)
-RST   → Pin 22 (GPIO 24)
-BLK   → Pin 1  (3.3V) - backlight
+RES   → Pin 22 (GPIO 24) - Reset
+DS    → Pin 18 (GPIO 25) - Data/Command (DC)
+CS    → Pin 24 (GPIO 8  / CE0) - Chip Select
+BLK   → Pin 1  (3.3V) - Backlight
 ```
+
+**Pin Assignment:**
+- **VCC**: 3.3V power (⚠️ **NOT** 5V - will damage display!)
+- **GND**: Ground
+- **SCL**: SPI Clock (fixed to GPIO 11)
+- **SDA**: SPI MOSI (fixed to GPIO 10)
+- **RES**: Reset pin (configurable, default GPIO 24)
+- **DS**: Data/Command pin (configurable, default GPIO 25)
+- **CS**: Chip Select (configurable, default GPIO 8)
+- **BLK**: Backlight power (3.3V)
 
 ### SPI Inschakelen
 
@@ -81,9 +91,9 @@ Voeg toe aan je robot config (`app.viam.com`):
 
 | Attribuut | Type | Default | Beschrijving |
 |-----------|------|---------|--------------|
-| `cs_pin` | int | 8 | GPIO pin voor Chip Select |
-| `dc_pin` | int | 25 | GPIO pin voor Data/Command |
-| `reset_pin` | int | 24 | GPIO pin voor Reset |
+| `cs_pin` | int | 8 | GPIO pin voor Chip Select (CS) |
+| `dc_pin` | int | 25 | GPIO pin voor Data/Command (DS) |
+| `reset_pin` | int | 24 | GPIO pin voor Reset (RES) |
 | `rotation` | int | 90 | Scherm rotatie (0, 90, 180, 270) |
 | `width` | int | 128 | Display breedte in pixels |
 | `height` | int | 160 | Display hoogte in pixels |
