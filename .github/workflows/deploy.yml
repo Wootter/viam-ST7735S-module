@@ -23,5 +23,5 @@ jobs:
         with:
           version: ${{ steps.version.outputs.VERSION }}
           ref: ${{ github.sha }}
-          key-id: ${{ secrets.VIAM_KEY_ID }}
-          key-value: ${{ secrets.VIAM_KEY_VALUE }}
+          key-id: ${{ secrets.VIAM_API_KEY_ID }}
+          key-value: ${{ secrets.VIAM_API_KEY }}
