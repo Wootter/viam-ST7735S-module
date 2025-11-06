@@ -13,6 +13,7 @@ from viam.resource.types import Model, ModelFamily
 from viam.services.vision import Vision
 from viam.logging import getLogger
 from viam.proto.service.vision import Classification, Detection
+from viam.proto.service.vision import GetPropertiesResponse, CaptureAllFromCameraResponse
 
 import asyncio
 from PIL import Image, ImageDraw
@@ -296,19 +297,18 @@ class RobotFaceDisplay(Vision, Reconfigurable):
                                      return_detections: bool = False,
                                      return_object_point_clouds: bool = False,
                                      *, extra: Optional[Dict[str, Any]] = None,
-                                     timeout: Optional[float] = None) -> Dict[str, Any]:
+                                     timeout: Optional[float] = None) -> CaptureAllFromCameraResponse:
         """Not implemented - display doesn't capture from cameras"""
-        return {}
+        return CaptureAllFromCameraResponse()
     
     async def get_properties(self, *, extra: Optional[Dict[str, Any]] = None,
-                            timeout: Optional[float] = None) -> Dict[str, Any]:
+                            timeout: Optional[float] = None) -> GetPropertiesResponse:
         """Return properties of this vision service"""
-        return {
-            "supports_pcd": False,
-            "detections_supported": False,
-            "classifications_supported": False,
-            "object_point_clouds_supported": False
-        }
+        return GetPropertiesResponse(
+            classifications_supported=False,
+            detections_supported=False,
+            object_point_clouds_supported=False
+        )
     
     async def close(self):
         """Clean up resources"""
