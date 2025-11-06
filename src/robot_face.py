@@ -11,7 +11,6 @@ from viam.proto.common import ResourceName
 from viam.resource.base import ResourceBase
 from viam.resource.types import Model, ModelFamily
 from viam.services.vision import Vision
-from viam.media.video import RawImage
 from viam.logging import getLogger
 from viam.proto.service.vision import Classification, Detection
 
@@ -252,7 +251,7 @@ class RobotFaceDisplay(Vision, Reconfigurable):
         return await asyncio.to_thread(_execute_command)
     
     # Vision service required methods (not used for display, but required by API)
-    async def get_detections(self, image: RawImage, *, extra: Optional[Dict[str, Any]] = None, 
+    async def get_detections(self, image: bytes, *, extra: Optional[Dict[str, Any]] = None, 
                             timeout: Optional[float] = None) -> List[Detection]:
         """Not implemented - display doesn't detect objects"""
         return []
@@ -262,7 +261,7 @@ class RobotFaceDisplay(Vision, Reconfigurable):
         """Not implemented - display doesn't detect objects"""
         return []
     
-    async def get_classifications(self, image: RawImage, count: int, *, extra: Optional[Dict[str, Any]] = None, 
+    async def get_classifications(self, image: bytes, count: int, *, extra: Optional[Dict[str, Any]] = None, 
                                  timeout: Optional[float] = None) -> List[Classification]:
         """Not implemented - display doesn't classify objects"""
         return []
