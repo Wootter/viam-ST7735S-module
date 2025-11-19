@@ -35,8 +35,8 @@ class RobotFaceDisplay(Vision, Reconfigurable):
     
     display = None
     current_face: str = "neutral"
-    width: int = 128
-    height: int = 160
+    width: int = 240
+    height: int = 240
     
     @classmethod
     def new(cls, config: ComponentConfig, dependencies: Mapping[ResourceName, ResourceBase]) -> Self:
@@ -74,14 +74,14 @@ class RobotFaceDisplay(Vision, Reconfigurable):
         rotation = get_int_attr("rotation", 90)
         
         # Optional: custom width/height
-        self.width = get_int_attr("width", 128)
-        self.height = get_int_attr("height", 160)
+        self.width = get_int_attr("width", 240)
+        self.height = get_int_attr("height", 240)
         
         try:
             # Import hardware libraries (only when actually running on Pi)
             import board
             import digitalio
-            from adafruit_rgb_display import st7735
+            from adafruit_rgb_display import st7789 # <-- CHANGED for ST7789
             
             # Setup GPIO pins
             cs_pin = digitalio.DigitalInOut(getattr(board, f"D{cs_pin_num}"))
@@ -89,18 +89,17 @@ class RobotFaceDisplay(Vision, Reconfigurable):
             reset_pin = digitalio.DigitalInOut(getattr(board, f"D{reset_pin_num}"))
             
             # Initialize display
-            self.display = st7735.ST7735S(
+            self.display = st7789.ST7789( # <-- CHANGED for ST7789
                 board.SPI(),
                 cs=cs_pin,
                 dc=dc_pin,
                 rst=reset_pin,
                 rotation=rotation,
                 width=self.width,
-                height=self.height,
-                bgr=True  # Color order for W180 display
+                height=self.height
             )
             
-            LOGGER.info(f"ST7735S display initialized (pins: CS={cs_pin_num}, DC={dc_pin_num}, RST={reset_pin_num})")
+            LOGGER.info(f"ST7789 display initialized (pins: CS={cs_pin_num}, DC={dc_pin_num}, RST={reset_pin_num})")
             
             # Show initial neutral face
             self._draw_face("neutral")
@@ -121,121 +120,102 @@ class RobotFaceDisplay(Vision, Reconfigurable):
         image = Image.new("RGB", (self.width, self.height), (0, 0, 0))
         draw = ImageDraw.Draw(image)
         
-        # Face positioning
+        # Face positioning (scaled for 240x240)
         center_x = self.width // 2
         eye_y = self.height // 3
-        eye_spacing = 35
-        mouth_y = int(self.height * 0.65)
-        
+        eye_spacing = self.width // 4  # Approx 60px
+        eye_radius = self.width // 12 # Approx 20px
+        mouth_y = int(self.height * 0.7)
+        mouth_width = self.width // 3 # Approx 80px
+        line_width = 6
+
         # Draw based on expression
         if expression == "happy":
             # Happy eyes (circles)
-            draw.ellipse((center_x - eye_spacing - 15, eye_y - 10, center_x - eye_spacing + 5, eye_y + 10), 
-                        fill=(0, 255, 255))  # Cyan eyes
-            draw.ellipse((center_x + eye_spacing - 5, eye_y - 10, center_x + eye_spacing + 15, eye_y + 10), 
-                        fill=(0, 255, 255))
+            draw.ellipse((center_x - eye_spacing - eye_radius, eye_y - eye_radius, center_x - eye_spacing + eye_radius, eye_y + eye_radius), fill=(0, 255, 255))
+            draw.ellipse((center_x + eye_spacing - eye_radius, eye_y - eye_radius, center_x + eye_spacing + eye_radius, eye_y + eye_radius), fill=(0, 255, 255))
             # Big smile
-            draw.arc((center_x - 30, mouth_y - 15, center_x + 30, mouth_y + 20), 
-                    start=0, end=180, fill=(255, 255, 0), width=4)  # Yellow smile
-        
+            draw.arc((center_x - mouth_width//2, mouth_y - 20, center_x + mouth_width//2, mouth_y + 20), 
+                    start=0, end=180, fill=(255, 255, 0), width=line_width)
+
         elif expression == "sad":
             # Sad eyes (half-closed)
-            draw.arc((center_x - eye_spacing - 15, eye_y - 5, center_x - eye_spacing + 5, eye_y + 15), 
-                    start=180, end=360, fill=(100, 100, 255), width=3)
-            draw.arc((center_x + eye_spacing - 5, eye_y - 5, center_x + eye_spacing + 15, eye_y + 15), 
-                    start=180, end=360, fill=(100, 100, 255), width=3)
+            draw.arc((center_x - eye_spacing - eye_radius, eye_y, center_x - eye_spacing + eye_radius, eye_y + eye_radius*1.5), 
+                    start=180, end=360, fill=(100, 100, 255), width=line_width)
+            draw.arc((center_x + eye_spacing - eye_radius, eye_y, center_x + eye_spacing + eye_radius, eye_y + eye_radius*1.5), 
+                    start=180, end=360, fill=(100, 100, 255), width=line_width)
             # Frown
-            draw.arc((center_x - 25, mouth_y - 20, center_x + 25, mouth_y + 10), 
-                    start=180, end=360, fill=(255, 100, 100), width=3)
-        
+            draw.arc((center_x - mouth_width//2, mouth_y, center_x + mouth_width//2, mouth_y + 40), 
+                    start=180, end=360, fill=(255, 100, 100), width=line_width)
+
         elif expression == "surprised":
             # Wide open eyes
-            draw.ellipse((center_x - eye_spacing - 20, eye_y - 15, center_x - eye_spacing + 10, eye_y + 15), 
-                        fill=(255, 255, 255))
-            draw.ellipse((center_x + eye_spacing - 10, eye_y - 15, center_x + eye_spacing + 20, eye_y + 15), 
-                        fill=(255, 255, 255))
+            draw.ellipse((center_x - eye_spacing - eye_radius, eye_y - eye_radius, center_x - eye_spacing + eye_radius, eye_y + eye_radius), fill=(255, 255, 255))
+            draw.ellipse((center_x + eye_spacing - eye_radius, eye_y - eye_radius, center_x + eye_spacing + eye_radius, eye_y + eye_radius), fill=(255, 255, 255))
             # Small pupils
-            draw.ellipse((center_x - eye_spacing - 7, eye_y - 5, center_x - eye_spacing + 3, eye_y + 5), 
-                        fill=(0, 0, 0))
-            draw.ellipse((center_x + eye_spacing - 3, eye_y - 5, center_x + eye_spacing + 7, eye_y + 5), 
-                        fill=(0, 0, 0))
+            pupil_radius = eye_radius // 3
+            draw.ellipse((center_x - eye_spacing - pupil_radius, eye_y - pupil_radius, center_x - eye_spacing + pupil_radius, eye_y + pupil_radius), fill=(0, 0, 0))
+            draw.ellipse((center_x + eye_spacing - pupil_radius, eye_y - pupil_radius, center_x + eye_spacing + pupil_radius, eye_y + pupil_radius), fill=(0, 0, 0))
             # Open mouth (O shape)
-            draw.ellipse((center_x - 12, mouth_y - 5, center_x + 12, mouth_y + 20), 
-                        fill=(255, 255, 255))
-        
+            draw.ellipse((center_x - 20, mouth_y, center_x + 20, mouth_y + 35), fill=(255, 255, 255))
+
         elif expression == "sleepy":
             # Closed eyes (horizontal lines)
-            draw.line((center_x - eye_spacing - 15, eye_y, center_x - eye_spacing + 5, eye_y), 
-                     fill=(200, 200, 200), width=4)
-            draw.line((center_x + eye_spacing - 5, eye_y, center_x + eye_spacing + 15, eye_y), 
-                     fill=(200, 200, 200), width=4)
+            draw.line((center_x - eye_spacing - eye_radius, eye_y, center_x - eye_spacing + eye_radius, eye_y), fill=(200, 200, 200), width=line_width)
+            draw.line((center_x + eye_spacing - eye_radius, eye_y, center_x + eye_spacing + eye_radius, eye_y), fill=(200, 200, 200), width=line_width)
             # Zzz
-            draw.text((center_x + 30, eye_y - 30), "Z", fill=(150, 150, 150))
-            draw.text((center_x + 40, eye_y - 40), "Z", fill=(100, 100, 100))
+            draw.text((center_x + 60, eye_y - 50), "Z", fill=(150, 150, 150))
+            draw.text((center_x + 75, eye_y - 70), "Z", fill=(100, 100, 100))
             # Small smile
-            draw.arc((center_x - 20, mouth_y - 5, center_x + 20, mouth_y + 10), 
-                    start=0, end=180, fill=(200, 200, 200), width=2)
-        
+            draw.arc((center_x - 30, mouth_y, center_x + 30, mouth_y + 20), start=0, end=180, fill=(200, 200, 200), width=line_width-2)
+
         elif expression == "angry":
             # Angry eyes (angled lines)
-            draw.line((center_x - eye_spacing - 20, eye_y - 10, center_x - eye_spacing, eye_y), 
-                     fill=(255, 0, 0), width=4)
-            draw.line((center_x - eye_spacing - 15, eye_y, center_x - eye_spacing + 5, eye_y + 10), 
-                     fill=(255, 0, 0), width=4)
-            draw.line((center_x + eye_spacing, eye_y, center_x + eye_spacing + 20, eye_y - 10), 
-                     fill=(255, 0, 0), width=4)
-            draw.line((center_x + eye_spacing - 5, eye_y + 10, center_x + eye_spacing + 15, eye_y), 
-                     fill=(255, 0, 0), width=4)
+            draw.line((center_x - eye_spacing - eye_radius, eye_y - 10, center_x - eye_spacing + eye_radius, eye_y + 10), fill=(255, 0, 0), width=line_width)
+            draw.line((center_x + eye_spacing - eye_radius, eye_y + 10, center_x + eye_spacing + eye_radius, eye_y - 10), fill=(255, 0, 0), width=line_width)
             # Angry mouth
-            draw.line((center_x - 25, mouth_y, center_x + 25, mouth_y), 
-                     fill=(255, 0, 0), width=4)
-        
+            draw.line((center_x - mouth_width//2, mouth_y + 15, center_x + mouth_width//2, mouth_y), fill=(255, 0, 0), width=line_width)
+
         elif expression == "confused":
             # Eyes at different heights
-            draw.ellipse((center_x - eye_spacing - 12, eye_y - 12, center_x - eye_spacing + 8, eye_y + 8), 
-                        fill=(255, 255, 255))
-            draw.ellipse((center_x + eye_spacing - 8, eye_y - 4, center_x + eye_spacing + 12, eye_y + 16), 
-                        fill=(255, 255, 255))
+            draw.ellipse((center_x - eye_spacing - eye_radius, eye_y - eye_radius, center_x - eye_spacing + eye_radius, eye_y + eye_radius), fill=(255, 255, 255))
+            draw.ellipse((center_x + eye_spacing - eye_radius, eye_y - eye_radius + 10, center_x + eye_spacing + eye_radius, eye_y + eye_radius + 10), fill=(255, 255, 255))
             # Pupils
-            draw.ellipse((center_x - eye_spacing - 4, eye_y - 4, center_x - eye_spacing + 4, eye_y + 4), 
-                        fill=(0, 0, 0))
-            draw.ellipse((center_x + eye_spacing, eye_y, center_x + eye_spacing + 8, eye_y + 8), 
-                        fill=(0, 0, 0))
+            pupil_radius = eye_radius // 3
+            draw.ellipse((center_x - eye_spacing - pupil_radius, eye_y - pupil_radius, center_x - eye_spacing + pupil_radius, eye_y + pupil_radius), fill=(0, 0, 0))
+            draw.ellipse((center_x + eye_spacing - pupil_radius, eye_y - pupil_radius + 10, center_x + eye_spacing + pupil_radius, eye_y + pupil_radius + 10), fill=(0, 0, 0))
             # Squiggly mouth
-            draw.line((center_x - 20, mouth_y + 5, center_x - 10, mouth_y - 5), fill=(200, 200, 0), width=3)
-            draw.line((center_x - 10, mouth_y - 5, center_x, mouth_y + 5), fill=(200, 200, 0), width=3)
-            draw.line((center_x, mouth_y + 5, center_x + 10, mouth_y - 5), fill=(200, 200, 0), width=3)
-            draw.line((center_x + 10, mouth_y - 5, center_x + 20, mouth_y + 5), fill=(200, 200, 0), width=3)
+            mouth_x = center_x - mouth_width//2
+            draw.line((mouth_x, mouth_y + 5, mouth_x + 20, mouth_y - 5), fill=(200, 200, 0), width=line_width)
+            draw.line((mouth_x + 20, mouth_y - 5, mouth_x + 40, mouth_y + 5), fill=(200, 200, 0), width=line_width)
+            draw.line((mouth_x + 40, mouth_y + 5, mouth_x + 60, mouth_y - 5), fill=(200, 200, 0), width=line_width)
 
         elif expression == "thinking":
             # Spiral eyes
-            for i in range(10):
-                angle1 = i * 36  # 10 steps
-                angle2 = (i + 1) * 36
+            for i in range(int(eye_radius / 2)):
+                angle1 = i * 72
+                angle2 = (i + 1) * 72
+                r = i * 2
                 # Left eye
-                draw.arc((center_x - eye_spacing - (i+1), eye_y - (i+1), center_x - eye_spacing + (i+1), eye_y + (i+1)),
-                         start=angle1, end=angle2, fill=(100, 100, 255), width=2)
+                draw.arc((center_x - eye_spacing - r, eye_y - r, center_x - eye_spacing + r, eye_y + r),
+                         start=angle1, end=angle2, fill=(100, 100, 255), width=3)
                 # Right eye
-                draw.arc((center_x + eye_spacing - (i+1), eye_y - (i+1), center_x + eye_spacing + (i+1), eye_y + (i+1)),
-                         start=angle1, end=angle2, fill=(100, 100, 255), width=2)
+                draw.arc((center_x + eye_spacing - r, eye_y - r, center_x + eye_spacing + r, eye_y + r),
+                         start=angle1, end=angle2, fill=(100, 100, 255), width=3)
             # Thinking mouth
-            draw.line((center_x - 15, mouth_y, center_x + 15, mouth_y), fill=(200, 200, 200), width=3)
-            draw.line((center_x + 15, mouth_y, center_x + 20, mouth_y - 5), fill=(200, 200, 200), width=3)
-        
+            draw.line((center_x - 25, mouth_y, center_x + 25, mouth_y), fill=(200, 200, 200), width=line_width)
+            draw.line((center_x + 25, mouth_y, center_x + 35, mouth_y - 10), fill=(200, 200, 200), width=line_width)
+
         else:  # neutral
             # Neutral eyes (circles)
-            draw.ellipse((center_x - eye_spacing - 12, eye_y - 8, center_x - eye_spacing + 8, eye_y + 12), 
-                        fill=(255, 255, 255))
-            draw.ellipse((center_x + eye_spacing - 8, eye_y - 8, center_x + eye_spacing + 12, eye_y + 12), 
-                        fill=(255, 255, 255))
+            draw.ellipse((center_x - eye_spacing - eye_radius, eye_y - eye_radius, center_x - eye_spacing + eye_radius, eye_y + eye_radius), fill=(255, 255, 255))
+            draw.ellipse((center_x + eye_spacing - eye_radius, eye_y - eye_radius, center_x + eye_spacing + eye_radius, eye_y + eye_radius), fill=(255, 255, 255))
             # Pupils
-            draw.ellipse((center_x - eye_spacing - 5, eye_y - 2, center_x - eye_spacing + 5, eye_y + 8), 
-                        fill=(0, 0, 0))
-            draw.ellipse((center_x + eye_spacing - 5, eye_y - 2, center_x + eye_spacing + 5, eye_y + 8), 
-                        fill=(0, 0, 0))
+            pupil_radius = eye_radius // 2
+            draw.ellipse((center_x - eye_spacing - pupil_radius, eye_y - pupil_radius, center_x - eye_spacing + pupil_radius, eye_y + pupil_radius), fill=(0, 0, 0))
+            draw.ellipse((center_x + eye_spacing - pupil_radius, eye_y - pupil_radius, center_x + eye_spacing + pupil_radius, eye_y + pupil_radius), fill=(0, 0, 0))
             # Straight mouth
-            draw.line((center_x - 20, mouth_y, center_x + 20, mouth_y), 
-                     fill=(200, 200, 200), width=3)
+            draw.line((center_x - mouth_width//2, mouth_y, center_x + mouth_width//2, mouth_y), fill=(200, 200, 200), width=line_width)
         
         # Display the image
         self.display.image(image)
