@@ -1,4 +1,4 @@
-name: Deploy ST7735S Module
+name: Deploy ST7789 Module
 
 on:
   push:
@@ -24,7 +24,7 @@ jobs:
       
       - name: Create module if it doesn't exist
         run: |
-          viam module create --name st7735s --public-namespace wootter || echo "Module already exists or creation not needed"
+          viam module create --name st7789 --public-namespace wootter || echo "Module already exists or creation not needed"
       
       - name: Extract version from tag
         id: version
