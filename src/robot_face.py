@@ -71,6 +71,7 @@ class RobotFaceDisplay(Vision, Reconfigurable):
         cs_pin_num = get_int_attr("cs_pin", 8)
         dc_pin_num = get_int_attr("dc_pin", 25)
         reset_pin_num = get_int_attr("reset_pin", 24)
+        backlight_pin_num = get_int_attr("backlight_pin", 18) # <-- ADDED
         rotation = get_int_attr("rotation", 90)
         
         # Optional: custom width/height
@@ -81,25 +82,29 @@ class RobotFaceDisplay(Vision, Reconfigurable):
             # Import hardware libraries (only when actually running on Pi)
             import board
             import digitalio
-            from adafruit_rgb_display import st7789 # <-- CHANGED for ST7789
+            from adafruit_rgb_display import st7789
             
             # Setup GPIO pins
             cs_pin = digitalio.DigitalInOut(getattr(board, f"D{cs_pin_num}"))
             dc_pin = digitalio.DigitalInOut(getattr(board, f"D{dc_pin_num}"))
             reset_pin = digitalio.DigitalInOut(getattr(board, f"D{reset_pin_num}"))
+            backlight_pin = digitalio.DigitalInOut(getattr(board, f"D{backlight_pin_num}")) # <-- ADDED
             
             # Initialize display
-            self.display = st7789.ST7789( # <-- CHANGED for ST7789
+            self.display = st7789.ST7789(
                 board.SPI(),
                 cs=cs_pin,
                 dc=dc_pin,
                 rst=reset_pin,
+                baudrate=24000000, # <-- ADDED: Faster SPI
                 rotation=rotation,
                 width=self.width,
-                height=self.height
+                height=self.height,
+                backlight_pin=backlight_pin # <-- ADDED
             )
-            
-            LOGGER.info(f"ST7789 display initialized (pins: CS={cs_pin_num}, DC={dc_pin_num}, RST={reset_pin_num})")
+            backlight_pin.switch_to_output(value=True) # <-- ADDED: Turn on backlight
+
+            LOGGER.info(f"ST7789 display initialized (pins: CS={cs_pin_num}, DC={dc_pin_num}, RST={reset_pin_num}, BL={backlight_pin_num})")
             
             # Show initial neutral face
             self._draw_face("neutral")
