@@ -1,12 +1,12 @@
 {
-  "module_id": "wootter:st7735s",
+  "module_id": "wootter:st7789",
   "visibility": "public",
   "url": "https://github.com/Wootter/viam-st7735s-module",
-  "description": "ST7735S display vision service for showing robot faces",
+  "description": "ST7789 display vision service for showing robot faces",
   "models": [
     {
       "api": "rdk:service:vision",
-      "model": "wootter:vision:st7735s"
+      "model": "wootter:vision:st7789"
     }
   ],
   "build": {
