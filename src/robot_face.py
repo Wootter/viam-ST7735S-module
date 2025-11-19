@@ -25,7 +25,7 @@ class RobotFaceDisplay(Vision, Reconfigurable):
     Vision Service for controlling ST7735S display to show robot faces
     
     Supported do_command operations:
-    - set_face: {"command": "set_face", "expression": "happy|sad|surprised|sleepy|neutral"}
+    - set_face: {"command": "set_face", "expression": "happy|sad|surprised|sleepy|neutral|angry|confused|thinking"}
     - get_face: {"command": "get_face"}
     - clear: {"command": "clear"}
     - custom_text: {"command": "custom_text", "text": "Hello!", "x": 10, "y": 50}
@@ -190,6 +190,38 @@ class RobotFaceDisplay(Vision, Reconfigurable):
             draw.line((center_x - 25, mouth_y, center_x + 25, mouth_y), 
                      fill=(255, 0, 0), width=4)
         
+        elif expression == "confused":
+            # Eyes at different heights
+            draw.ellipse((center_x - eye_spacing - 12, eye_y - 12, center_x - eye_spacing + 8, eye_y + 8), 
+                        fill=(255, 255, 255))
+            draw.ellipse((center_x + eye_spacing - 8, eye_y - 4, center_x + eye_spacing + 12, eye_y + 16), 
+                        fill=(255, 255, 255))
+            # Pupils
+            draw.ellipse((center_x - eye_spacing - 4, eye_y - 4, center_x - eye_spacing + 4, eye_y + 4), 
+                        fill=(0, 0, 0))
+            draw.ellipse((center_x + eye_spacing, eye_y, center_x + eye_spacing + 8, eye_y + 8), 
+                        fill=(0, 0, 0))
+            # Squiggly mouth
+            draw.line((center_x - 20, mouth_y + 5, center_x - 10, mouth_y - 5), fill=(200, 200, 0), width=3)
+            draw.line((center_x - 10, mouth_y - 5, center_x, mouth_y + 5), fill=(200, 200, 0), width=3)
+            draw.line((center_x, mouth_y + 5, center_x + 10, mouth_y - 5), fill=(200, 200, 0), width=3)
+            draw.line((center_x + 10, mouth_y - 5, center_x + 20, mouth_y + 5), fill=(200, 200, 0), width=3)
+
+        elif expression == "thinking":
+            # Spiral eyes
+            for i in range(10):
+                angle1 = i * 36  # 10 steps
+                angle2 = (i + 1) * 36
+                # Left eye
+                draw.arc((center_x - eye_spacing - (i+1), eye_y - (i+1), center_x - eye_spacing + (i+1), eye_y + (i+1)),
+                         start=angle1, end=angle2, fill=(100, 100, 255), width=2)
+                # Right eye
+                draw.arc((center_x + eye_spacing - (i+1), eye_y - (i+1), center_x + eye_spacing + (i+1), eye_y + (i+1)),
+                         start=angle1, end=angle2, fill=(100, 100, 255), width=2)
+            # Thinking mouth
+            draw.line((center_x - 15, mouth_y, center_x + 15, mouth_y), fill=(200, 200, 200), width=3)
+            draw.line((center_x + 15, mouth_y, center_x + 20, mouth_y - 5), fill=(200, 200, 200), width=3)
+        
         else:  # neutral
             # Neutral eyes (circles)
             draw.ellipse((center_x - eye_spacing - 12, eye_y - 8, center_x - eye_spacing + 8, eye_y + 12), 
@@ -226,7 +258,7 @@ class RobotFaceDisplay(Vision, Reconfigurable):
             
             if cmd == "set_face":
                 expression = command.get("expression", "neutral")
-                valid_expressions = ["happy", "sad", "surprised", "sleepy", "angry", "neutral"]
+                valid_expressions = ["happy", "sad", "surprised", "sleepy", "angry", "neutral", "confused", "thinking"]
                 
                 if expression not in valid_expressions:
                     return {
