@@ -31,5 +31,5 @@ jobs:
     
     - name: Upload module
       run: |
-        viam module upload --public-namespace wootter --name st7735s --version ${{ steps.version.outputs.VERSION }} --platform linux/arm64 --upload .
-        viam module upload --public-namespace wootter --name st7735s --version ${{ steps.version.outputs.VERSION }} --platform linux/amd64 --upload .
+        viam module upload --module ./meta.json --version ${{ steps.version.outputs.VERSION }} --platform linux/arm64 --upload .
+        viam module upload --module ./meta.json --version ${{ steps.version.outputs.VERSION }} --platform linux/amd64 --upload .
