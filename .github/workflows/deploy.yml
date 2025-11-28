@@ -1,0 +1,33 @@
+name: Deploy ST7735S Module
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install Viam CLI
+      run: |
+        curl -o viam https://storage.googleapis.com/packages.viam.com/apps/viam-cli/viam-cli-stable-linux-amd64
+        sudo chmod +x viam && sudo mv viam /usr/local/bin/
+    
+    - name: Get version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: Login to Viam
+      run: viam login api-key --key-id ${{ secrets.VIAM_API_KEY_ID }} --key ${{ secrets.VIAM_API_KEY }}
+    
+    - name: Upload module
+      run: viam module upload --version ${{ steps.version.outputs.VERSION }} --platform linux/arm64 --platform linux/amd64 .
