@@ -30,4 +30,6 @@ jobs:
       run: viam login api-key --key-id ${{ secrets.VIAM_API_KEY_ID }} --key ${{ secrets.VIAM_API_KEY }}
     
     - name: Upload module
-      run: viam module upload --org wootter --name st7735s --version ${{ steps.version.outputs.VERSION }} --platform linux/arm64 --platform linux/amd64 .
+      run: |
+        viam module upload --public-namespace wootter --name st7735s --version ${{ steps.version.outputs.VERSION }} --platform linux/arm64 --upload .
+        viam module upload --public-namespace wootter --name st7735s --version ${{ steps.version.outputs.VERSION }} --platform linux/amd64 --upload .
